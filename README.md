@@ -1,1 +1,2 @@
-# Neural Lithography: Close the Design to Manufacturing Gap in Computational Optics with a 'Real2Sim' Photolithography Simulator
+# Neural Lithography
+Repo for the project - ## Neural Lithography: Close the Design to Manufacturing Gap in Computational Optics with a 'Real2Sim' Photolithography Simulator## 
