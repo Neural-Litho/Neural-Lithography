@@ -1,11 +1,11 @@
 # Neural Lithography
 
 Repo for the project - **Neural Lithography: Close the Design to Manufacturing Gap in Computational Optics with a 'Real2Sim' Learned Photolithography Simulator**
-#### [Project Page](https://neural-litho.github.io/) | [ArXiv]()|  [Bibtex](#bibtex)
+#### [Project Page](https://neural-litho.github.io/) | [ArXiv](https://arxiv.org/abs/2309.17343)|  [Bibtex](#bibtex)
 [Cheng Zheng](https://zcshinee.github.io/chengzheng.github.io/)\* $^{1}$, Guangyuan Zhao\* $^{2}$, Peter So $^{1}$. (*equal contribution)<br>
 $^1$ MIT, $^2$ CUHK.
 
-Related paper accepted to [SIGGRAPH ASIA 2023](https://asia.siggraph.org/2023/submissions/technical-papers/).
+:pushpin: Related paper accepted to [SIGGRAPH ASIA 2023](https://asia.siggraph.org/2023/submissions/technical-papers/).
 
 
 ![teaser](GithubFigures/Teaser.png)
@@ -13,7 +13,7 @@ Related paper accepted to [SIGGRAPH ASIA 2023](https://asia.siggraph.org/2023/su
 
 ## What We Contribute?
 
-**TL;DR:** A real2sim pipeline to quantitatively construct a high-fidelity neural photolithography simulator and a design-fabrication co-optimization framework to bridge the design-to-manufacturing gap in computational optics. 
+**TL;DR:** :one: A real2sim pipeline to quantitatively construct a high-fidelity neural lithography simulator from real-world lithography system; :two: A fully-differentiable bi-level design-manufacturing co-optimization framework to bridge the design-to-manufacturing gap in computational optics. 
 
 ### This work answers two fundmental questions in computational optics (including computational lithography):
 1. *What is the "elephant in the room" in Computational Lithography?*
@@ -39,5 +39,10 @@ See details in Code.md.
 
 If you find our work or any of our materials useful, please cite our paper:
 ```
-To be updated.
+@article{zheng2023neural,
+            title={Neural Lithography: Close the Design-to-Manufacturing Gap in Computational Optics with a'Real2Sim'Learned Photolithography Simulator},
+            author={Zheng, Cheng and Zhao, Guangyuan and So, Peter TC},
+            journal={arXiv preprint arXiv:2309.17343},
+            year={2023}
+            }
 ```
