@@ -5,8 +5,8 @@
     Here we use pre-calibrated model to find a better lens design. 
 """
 from config import *
-from mbo_lens import MBOLens
-from param.param_inv_litho import optim_param, settings,metalens_optics_param
+from mbo_computational_imaging import MBOLens
+from param.param_inv_design_holography import optim_param, settings,metalens_optics_param
 from utils.visualize_utils import show
 from utils.general_utils import load_image, normalize
 from torchvision.transforms.functional import center_crop

@@ -1,5 +1,7 @@
 
 
+
+
 from config import *
 import torch
 import torch.nn as nn
@@ -10,7 +12,7 @@ from torch.optim.lr_scheduler import StepLR
 from kornia.losses import SSIMLoss, PSNRLoss
 
 from optics import HoloFwd, DOE
-from param.param_inv_litho import metalens_optics_param
+from param.param_inv_design_holography import metalens_optics_param
 from utils.model_utils import model_selector
 from utils.visualize_utils import show, plot_loss
 from utils.general_utils import normalize, center_to_background_ratio, central_crop, sensor_noise, conv2d
@@ -76,7 +78,7 @@ class MBOLens(object):
             metric_psnr2 = -self.metric_psnr(deconv_result, target)
             metric_ssim.append(metric_ssim2.item())
             metric_psnr.append(metric_psnr2.item())         
-        
+            
         else:
             print('wrong type {}'.format(self.loss_type))
             raise Exception
@@ -123,7 +125,6 @@ class MBOLens(object):
     
     
     def optim(self, batch_target):
-
         loss_list = []
         itr_list = []
         for i in range(self.num_iters):

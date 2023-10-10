@@ -59,8 +59,8 @@ class FwdOpticsTrainer(object):
                     torch.nn.utils.clip_grad_norm_(
                         self.model.parameters(), max_norm=self.clipping_value
                     )
+                    
             self.model_optimizer.step()
-
             train_epoch_loss += loss
                 
         if self.use_scheduler:
@@ -71,7 +71,6 @@ class FwdOpticsTrainer(object):
         return train_epoch_loss, batch_images, images_pred
 
     def test_model(self, test_loader):
-
         self.model.eval()
         for param in self.model.parameters():
             param.requries_grad = False
@@ -80,12 +79,12 @@ class FwdOpticsTrainer(object):
             test_loss = 0
             for _, batch_sample in enumerate(test_loader):
 
-                batch_loss, batch_images, images_pred = self.perform_evaluation(batch_sample)
+                batch_loss, batch_images, images_pred_last_batch = self.perform_evaluation(batch_sample)
                 test_loss += batch_loss
 
             test_loss = test_loss / (len(test_loader))
         
-        return test_loss, batch_images, images_pred
+        return test_loss, batch_images, images_pred_last_batch
 
     def fit(self, train_loader, val_loader):
         

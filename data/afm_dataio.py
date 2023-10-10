@@ -8,9 +8,6 @@ from utils.general_utils import load_image, pad_crop_to_size
 
 class AFMdataset(Dataset):
     
-    """[A very simple Dataset object for dealing with stream samples]
-    """
-
     def __init__(self, data_path, num_data_to_load=None, 
                  random_crop=False, output_size=(256, 256), 
                  load_folder='', map_location=torch.device('cpu')):
@@ -30,7 +27,6 @@ class AFMdataset(Dataset):
             self.afm_names = self.afm_names[:num_data_to_load]
             self.max_heigh_dict = dict(itertools.islice(self.max_heigh_dict.items(), num_data_to_load))
             
-
         self.map_location = map_location
 
     def __len__(self):

@@ -13,13 +13,13 @@ class HoloFwd(nn.Module):
         self.propagator = RSCProp(
             input_dx, input_shape, output_dx, output_shape, 
             wave_lengths, z, pad_scale)
-        self.transfer_factor = 2*math.pi/wave_lengths*Delta_n
+        self.transfer_factor = 2 * math.pi / wave_lengths * Delta_n
         
     def forward(self, input):
         
         # transfer height unit nm to phase 
-        phase = input/10*self.transfer_factor
-        x = torch.exp(1j*phase)
+        phase = input / 10 * self.transfer_factor
+        x = torch.exp(1j * phase)
        
         # norm source input 
         x = x/ torch.sqrt(torch.prod(torch.tensor(x.shape[-2:])))
@@ -33,9 +33,12 @@ class DOE(nn.Module):
         super(DOE, self).__init__()
         self.doe_type = doe_type
         self.doe_size = num_partition
+        
+        # t
         if self.doe_type == '2d':
             self.logits = nn.parameter.Parameter(
                 torch.rand(doe_layers, num_partition, num_partition, doe_level), requires_grad=True)
+        
         elif self.doe_type == '1d':
             self.logits = nn.parameter.Parameter(
                 torch.rand(doe_layers, num_partition, doe_level), requires_grad=True)
@@ -57,16 +60,20 @@ class DOE(nn.Module):
             doe_images = doe_res
         return doe_images
 
-    def generate_mesh_mapping(self):
+    def generate_mesh_mapping(self, doe_size):
         # self.inds contains a 2D tensor of index point to 1D doe values
-        size = self.doe_size
+        # size = doe_size
         coord_x = torch.linspace(-size/2, size/2, int(size))
         coord_y = torch.linspace(-size/2, size/2, int(size))
+        
         meshx, meshy = torch.meshgrid(coord_x, coord_y, indexing='ij')
         meshrho = torch.sqrt(meshx ** 2 + meshy ** 2)
+        
         rho = math.sqrt(2)*(torch.arange(0, size // 2, dtype=torch.double))
         distance = torch.abs(meshrho[:, :, None] - rho[None, None, :])
-        self.inds = torch.argmin(distance, dim=2)
+        
+        indices = torch.argmin(distance, dim=2)
+        return indices
 
     def get_doe_sample(self):
       # Sample soft categorical using reparametrization trick:

@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 
 from optics import HoloFwd, DOE
-from param.param_inv_litho import holo_optics_param
+from param.param_inv_design_holography import holo_optics_param
 from utils.model_utils import model_selector
 from utils.visualize_utils import show, plot_loss
 from utils.general_utils import cond_mkdir, normalize

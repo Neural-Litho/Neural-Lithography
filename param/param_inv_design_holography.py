@@ -31,17 +31,3 @@ holo_optics_param = {
     'Delta_n': 0.545, # refractive index
 }
 
-# parameter for metalens inv design
-metalens_optics_param = {
-    'input_dx': 0.1,
-    'input_shape': [1200, 1200], # 1600 for single fov, 3000 for large aperture
-    'output_dx': 0.1,
-    'output_shape': [1200, 1200],
-    'lambda': 0.633,
-    'z': 400,  # NA 0.15
-    'pad_scale': 2,
-    'num_level': 12,
-    'num_partition': 1200,
-    'loss_type': 'deconv_loss',  # deconv_loss, cbr
-    'doe_type':'1d', # 2d or 1d 
-}

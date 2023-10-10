@@ -13,7 +13,7 @@ $^1$ MIT, $^2$ CUHK.
 --------------
 ## What We Contribute?
 
-**TL;DR:** :one: A real2sim pipeline to quantitatively construct a high-fidelity neural lithography simulator from real-world lithography system; :two: A fully-differentiable bi-level design-manufacturing co-optimization framework to bridge the design-to-manufacturing gap in computational optics. 
+**TL;DR:** :one: A real2sim pipeline to quantitatively digitalize a real-world lithography system into a high-fidelity neural lithography digital twin; :two: A fully-differentiable bi-level design-manufacturing co-optimization framework to bridge the design-to-manufacturing gap in computational optics. 
 
 ### This work answers two fundmental questions in computational optics (including computational lithography):
 1. *What is the "elephant in the room" in Computational Lithography?*

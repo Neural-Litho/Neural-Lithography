@@ -3,7 +3,6 @@
 """ from neural photo finishing
 """
 
-import torch
 import torch.nn as nn 
 
 class NeuralPointwiseNet(nn.Module):
