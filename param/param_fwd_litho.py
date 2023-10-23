@@ -7,10 +7,15 @@ dataset_param = {
     'data_path': 'data/our_printed_data/230403_nanoscribe_GDS_AFM_12/',
     'batch_size': 4,
     'shuffle': False,
-    'train_sample_ratio': 0.75,
+    'train_sample_ratio': 0.75, # the rest is for validation
     'num_data_to_load': None,
     'random_crop': True,
     'output_size':(256,256),
+}
+
+litho_param = {
+    'hatching_distance': 0.1, # um 
+    'slicing_distance': 0.1, # um 
 }
 
 trainer_param = {

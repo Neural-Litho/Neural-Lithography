@@ -1,15 +1,17 @@
 
 
-from config import *
+from config import device
+import torch
+import torch.nn as nn 
 import math
 from datetime import datetime
 from torch.optim.lr_scheduler import ExponentialLR
 from utils.general_utils import cond_mkdir
 from utils.visualize_utils import show, plot_loss
-from utils.model_utils import model_selector
+from model.learned_litho import model_selector
 
 
-class FwdOpticsTrainer(object):
+class FwdLithoTrainer(object):
     def __init__(self, trainer_param) -> None:
         
         self.add_img_vis = trainer_param['add_img_vis']
@@ -18,15 +20,15 @@ class FwdOpticsTrainer(object):
         self.early_stop_patience = trainer_param['early_stop_patience']
         self.model_update_epochs = trainer_param['model_update_epochs']
         
-        # IMPORTANT: which model to use for the forward fitting. 
+        # IMPORTANT: select an suitable model to use for the forward fitting. 
         self.model_choice = trainer_param['model_choice']
         self.model = model_selector(trainer_param['model_choice'])
         
         self.model_criterion = nn.SmoothL1Loss(beta=trainer_param['loss_beta'], reduction='mean')  # 0.1     
+        
         self.model_update_epochs = trainer_param['model_update_epochs']
         self.use_scheduler = trainer_param['use_scheduler']
 
-        
         self.model_optimizer = torch.optim.Adam(self.model.parameters(), lr=trainer_param['model_lr'])
         self.exp_scheduler = ExponentialLR(self.model_optimizer, gamma=0.99)
 

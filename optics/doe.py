@@ -1,52 +1,32 @@
 
-
-from config import *
+import torch.nn as nn
+import torch
+from config import device
 import math
-from propagator import RSCProp
 from utils.gumbel_max_pytorch import gumbel_softmax
 
-
-class HoloFwd(nn.Module):
-    def __init__(self, input_dx, input_shape, output_dx, output_shape, wave_lengths, z, pad_scale, Delta_n=0.545) -> None:
-        super().__init__()
-        
-        self.propagator = RSCProp(
-            input_dx, input_shape, output_dx, output_shape, 
-            wave_lengths, z, pad_scale)
-        self.transfer_factor = 2 * math.pi / wave_lengths * Delta_n
-        
-    def forward(self, input):
-        
-        # transfer height unit nm to phase 
-        phase = input / 10 * self.transfer_factor
-        x = torch.exp(1j * phase)
-       
-        # norm source input 
-        x = x/ torch.sqrt(torch.prod(torch.tensor(x.shape[-2:])))
-        x = self.propagator(x)
-        return x 
-
 class DOE(nn.Module):
-    """Some InformatMyModule"""
+    """Sampling the paramterized DOE. If w/ litho model in the design loop, the result is not a DOE but a mask to print in the litho system.
+    """
 
-    def __init__(self, num_partition, doe_level, output_size, doe_layers=1, doe_type='1d') -> None:
+    def __init__(self, num_partition, doe_num_level, output_size, slicing_distance, doe_layers=1, doe_type='1d') -> None:
         super(DOE, self).__init__()
         self.doe_type = doe_type
         self.doe_size = num_partition
+        self.slicing_distance = slicing_distance
         
-        # t
         if self.doe_type == '2d':
             self.logits = nn.parameter.Parameter(
-                torch.rand(doe_layers, num_partition, num_partition, doe_level), requires_grad=True)
-        
+                torch.rand(doe_layers, num_partition, num_partition, doe_num_level), requires_grad=True)
+
         elif self.doe_type == '1d':
             self.logits = nn.parameter.Parameter(
-                torch.rand(doe_layers, num_partition, doe_level), requires_grad=True)
+                torch.rand(doe_layers, num_partition, doe_num_level), requires_grad=True)
             self.generate_mesh_mapping()
-        self.doe_level = doe_level
+        self.doe_num_level = doe_num_level
         self.doe_layers = doe_layers
-        self.level_logits = torch.arange(0, self.doe_level).to(device)
-        self.m = nn.Upsample(scale_factor=output_size[0]/
+        self.level_logits = torch.arange(0, self.doe_num_level).to(device)
+        self.m = nn.Upsample(scale_factor=output_size[0] /
                              num_partition, mode='nearest')
 
     def logits_to_doe_profile(self):
@@ -62,23 +42,23 @@ class DOE(nn.Module):
 
     def generate_mesh_mapping(self, doe_size):
         # self.inds contains a 2D tensor of index point to 1D doe values
-        # size = doe_size
-        coord_x = torch.linspace(-size/2, size/2, int(size))
-        coord_y = torch.linspace(-size/2, size/2, int(size))
-        
+        coord_x = torch.linspace(-doe_size/2, doe_size/2, int(doe_size))
+        coord_y = torch.linspace(-doe_size/2, doe_size/2, int(doe_size))
+
         meshx, meshy = torch.meshgrid(coord_x, coord_y, indexing='ij')
         meshrho = torch.sqrt(meshx ** 2 + meshy ** 2)
-        
-        rho = math.sqrt(2)*(torch.arange(0, size // 2, dtype=torch.double))
+
+        rho = math.sqrt(2)*(torch.arange(0, doe_size // 2, dtype=torch.double))
         distance = torch.abs(meshrho[:, :, None] - rho[None, None, :])
-        
+
         indices = torch.argmin(distance, dim=2)
         return indices
 
     def get_doe_sample(self):
       # Sample soft categorical using reparametrization trick:
-        sample_one_hot = gumbel_softmax(self.logits, tau=1, hard=False).to(device)
-       
+        sample_one_hot = gumbel_softmax(
+            self.logits, tau=1, hard=False).to(device)
+
         if self.doe_type == '2d':
             doe_sample = (sample_one_hot *
                           self.level_logits[None, None, None, :]).sum(dim=-1)
@@ -91,8 +71,11 @@ class DOE(nn.Module):
                 doe_sample[i] = doe_sample_1d[i, self.inds]
 
         doe_sample = self.m(doe_sample[None, :, :, :])
-        
+
+        # convert doe sample from levels to digits
+        doe_sample *= self.slicing_distance 
+
         if torch.isnan(doe_sample).any():
             raise
-        
+
         return doe_sample.to(device)

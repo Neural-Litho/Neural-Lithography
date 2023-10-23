@@ -1,3 +1,7 @@
+
+""" code adapted from https://github.com/neuraloperator/neuraloperator
+"""
+
 import torch.nn as nn 
 import torch
 import torch.nn.functional as F
@@ -14,7 +18,6 @@ class SpectralConv2d(nn.Module):
         """
         2D Fourier layer. It does FFT, linear transform, and Inverse FFT.    
         """
-
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.modes1 = modes1 #Number of Fourier modes to multiply, at most floor(N/2) + 1

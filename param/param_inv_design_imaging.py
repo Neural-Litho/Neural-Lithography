@@ -5,6 +5,7 @@ settings = {
     "use_litho_model_flag": True,
 }
 
+# optim param
 optim_param = {
     'model_choice': 'pbl3d', # from {pbl3d, fno, physics}
     'use_scheduler': True,
@@ -14,8 +15,7 @@ optim_param = {
     'image_visualize_interval':50,
 }
 
-
-# parameter for metalens inv design
+# parameter for metalens  inv design
 metalens_optics_param = {
     'input_dx': 0.1,
     'input_shape': [1200, 1200], # 1600 for single fov, 3000 for large aperture
@@ -27,5 +27,7 @@ metalens_optics_param = {
     'num_level': 12,
     'num_partition': 1200,
     'loss_type': 'deconv_loss',  # deconv_loss, cbr
-    'doe_type':'1d', # 2d or 1d; 1d means the doe is rotational sysm
+    'doe_type':'1d', # 2d or 1d; 1d means the doe is rotational symmetrical
+    'cam_a_poisson':.004, 
+    'b_sqrt':0.02,
 }

@@ -1,44 +1,50 @@
 
 
-
+""" model based optimization for    
+"""
 
 from config import *
-import torch
-import torch.nn as nn
-
 import cv2
 import numpy as np
 from torch.optim.lr_scheduler import StepLR
 from kornia.losses import SSIMLoss, PSNRLoss
 
-from optics import HoloFwd, DOE
-from param.param_inv_design_holography import metalens_optics_param
-from utils.model_utils import model_selector
+from optics.free_space_fwd import FreeSpaceFwd 
+from optics.doe import DOE
+from param.param_inv_design_imaging import metalens_optics_param
+from param.param_fwd_litho import litho_param
+from model.learned_litho import model_selector
 from utils.visualize_utils import show, plot_loss
 from utils.general_utils import normalize, center_to_background_ratio, central_crop, sensor_noise, conv2d
 from utils.img_processing import torch_richardson_lucy_fft
 
 
 class MBOLens(object):
-    def __init__(self, model_choice, use_litho_model_flag, num_iters, lr, use_scheduler, image_visualize_interval=50, save_dir='', use_ensemble=False, num_ensembles=None, loss_type=None, deconv_method=None) -> None:
+    def __init__(self, model_choice, use_litho_model_flag, num_iters, lr, use_scheduler, image_visualize_interval, cam_a_poisson, cam_b_sqrt, save_dir='', loss_type=None, deconv_method=None) -> None:
         
         self.deconv_method = deconv_method
         self.use_litho_model_flag = use_litho_model_flag
-
+        self.cam_a_poisson = cam_a_poisson
+        self.cam_b_sqrt = cam_b_sqrt
         self.litho_model = model_selector(model_choice)
         
-        self.optic_model = HoloFwd(
+        # the psf of lens shares the same path with the holography task.
+        self.lens_model = FreeSpaceFwd(
             metalens_optics_param['input_dx'], metalens_optics_param['input_shape'],
             metalens_optics_param['output_dx'], metalens_optics_param['output_shape'],
             metalens_optics_param['lambda'], metalens_optics_param['z'], 
-            metalens_optics_param['pad_scale'])
+            metalens_optics_param['pad_scale']
+            )
         
-        self.doe = DOE(metalens_optics_param['num_partition'],
+        self.doe = DOE(
+                       metalens_optics_param['num_partition'],
                        metalens_optics_param['num_level'], 
                        metalens_optics_param['input_shape'], 
-                       metalens_optics_param['doe_type'])
+                       metalens_optics_param['doe_type'],
+                       litho_param['slicing_distance'],
+                       )
         
-        self.load_pretrianed_model(use_litho_model_flag, use_ensemble)
+        self.load_pretrianed_model(use_litho_model_flag)
         
         self.loss_type = loss_type
         self.num_iters = num_iters
@@ -60,7 +66,24 @@ class MBOLens(object):
             self.scheduler = StepLR(
                 self.mask_optimizer, step_size=25, gamma=0.5)
     
-    def calculate_loss(self, cam_img, target, psf, itr):
+    def visualize(self, i, mask, sensor_img, psf, deconv_img, itr_list, loss_list, mssim, mpsnr, psf_sum, loss):
+        if (i + 1) % self.image_visualize_interval == 0:
+            show(mask[0, 0].detach().cpu(),
+                    'doe mask at itr {}'.format(i), cmap='jet')
+            psf_save = central_crop(
+                normalize(psf)[0, 0].detach().cpu(), 128)
+            show(psf_save, 'psf at itr {} is {}'.format(i, psf_sum), cmap='gray')
+            show((sensor_img)[0, 0].detach().cpu(),
+                    'sensor_img at itr {}'.format(i), cmap='gray')
+            if deconv_img is not None:
+                show((deconv_img)[0, 0].detach().cpu(),
+                        'deconv_img at itr {}'.format(i), cmap='gray')
+            plot_loss(itr_list, loss_list, filename="loss")
+            print('loss is {} at itr {}'.format(loss, i))
+            print('SSIM and PSNR is {} and {} at itr {}.'.format(mssim, mpsnr, i))
+        return psf_save
+    
+    def calculate_loss(self, cam_img, target, psf):
         deconv_result = None
         metric_ssim1 = 1-self.metric_ssim(cam_img, target)*2
         metric_psnr1 = -self.metric_psnr(cam_img, target)
@@ -68,17 +91,17 @@ class MBOLens(object):
         metric_psnr = [metric_psnr1.item()]
         
         if self.loss_type == 'cbr':
+            # direct imaging
             loss = -torch.log(center_to_background_ratio(psf, centersize=10))
         
         elif self.loss_type == 'deconv_loss':
+            # computational imaging, which uses RL deconvolution; here we embed the deconv process into the loss calculation
             deconv_result = torch_richardson_lucy_fft(cam_img, psf)                
             loss = self.loss_fn(deconv_result, target)
-            
             metric_ssim2 = 1-self.metric_ssim(deconv_result, target)*2
             metric_psnr2 = -self.metric_psnr(deconv_result, target)
             metric_ssim.append(metric_ssim2.item())
             metric_psnr.append(metric_psnr2.item())         
-            
         else:
             print('wrong type {}'.format(self.loss_type))
             raise Exception
@@ -98,29 +121,27 @@ class MBOLens(object):
                 param.requries_grad = False
 
     def forward_imaging(self, batch_target, itr):
-        self.mask_optimizer.zero_grad()
-        mask = self.doe.get_doe_sample()
         
+        # get psf
+        mask = self.doe.get_doe_sample()
         if self.use_litho_model_flag:
-            print_pred = self.litho_model(mask*100)/100
+            print_pred = self.litho_model(mask)
         else:
             print_pred = mask
             
-        psf = torch.abs(self.optic_model(print_pred))**2
+        psf = torch.abs(self.lens_model(print_pred))**2
         psf_sum = torch.sum(psf)
+        
         if torch.isnan(psf).any():
             raise
         
+        # get sensor(camera) image
         sensor_img = conv2d(batch_target, psf, intensity_output=True)
         sensor_img = sensor_img + sensor_noise(sensor_img, 0.004, 0.02)
- 
-        loss, deconv_img, metric_ssim, metric_psnr = self.calculate_loss(sensor_img, batch_target, psf, itr)
-        loss.backward()
-        
-        self.mask_optimizer.step()
-        if self.use_scheduler:
-            self.scheduler.step()
-        
+
+        # get loss
+        loss, deconv_img, metric_ssim, metric_psnr = self.calculate_loss(sensor_img, batch_target, psf)
+
         return loss, metric_ssim, metric_psnr, mask, psf, psf_sum, deconv_img, sensor_img, print_pred
     
     
@@ -128,27 +149,22 @@ class MBOLens(object):
         loss_list = []
         itr_list = []
         for i in range(self.num_iters):
-            loss, mssim, mpsnr, mask, psf, psf_sum, deconv_img, sensor_img, print_pred = self.forward_imaging(batch_target, i)
+            self.mask_optimizer.zero_grad()
+
+            loss, mssim, mpsnr, mask, psf, psf_intensity_sum, deconv_img, sensor_img, print_pred = self.forward_imaging(batch_target, i)
+            
+            loss.backward()
+            self.mask_optimizer.step()
+            if self.use_scheduler:
+                self.scheduler.step()
                 
             loss_list.append(loss.item())
             itr_list.append(i)
 
-            if (i + 1) % self.image_visualize_interval == 0:
-                show(mask[0, 0].detach().cpu(),
-                        'doe mask at itr {}'.format(i), cmap='jet')
-                psf_save = central_crop(
-                    normalize(psf)[0, 0].detach().cpu(), 128)
-                show(psf_save, 'psf at itr {} is {}'.format(i, psf_sum), cmap='gray')
-                show((sensor_img)[0, 0].detach().cpu(),
-                     'sensor_img at itr {}'.format(i), cmap='gray')
-                if deconv_img is not None:
-                    show((deconv_img)[0, 0].detach().cpu(),
-                            'deconv_img at itr {}'.format(i), cmap='gray')
-                plot_loss(itr_list, loss_list, filename="loss")
-                print('loss is {} at itr {}'.format(loss, i))
-                print('SSIM and PSNR is {} and {} at itr {}.'.format(mssim, mpsnr, i))
+            psf_save = self.visualize(i, mask, sensor_img, psf, deconv_img,
+                           itr_list, loss_list, mssim, mpsnr, psf_intensity_sum, loss)
 
-
+        # save optimized psf and mask_to_fab
         mask_logits = self.doe.logits_to_doe_profile()[0]
         mask_to_save = (mask_logits.detach().cpu().numpy()+10).astype(np.uint8)
         psf_to_save = psf_save.numpy()

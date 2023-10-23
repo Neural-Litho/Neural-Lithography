@@ -5,19 +5,27 @@
     Here we use pre-calibrated model to find a better lens design. 
 """
 from config import *
-from mbo_computational_imaging import MBOLens
-from param.param_inv_design_holography import optim_param, settings,metalens_optics_param
+from param.param_inv_design_imaging import optim_param, settings, metalens_optics_param
+from trainer.mbo_lens import MBOLens
+
+from torchvision.transforms.functional import center_crop
+import os
 from utils.visualize_utils import show
 from utils.general_utils import load_image, normalize
-from torchvision.transforms.functional import center_crop
-import matplotlib.pylab as plt
-import numpy as np
-import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 #%%
 def load_target(num_imgs, pattern_size, lens_size):
-    
+    """ load objects to optimize the lens. Since we only use 4 images to optimize the regression task, we use a function instead of a torch dataloader. 
+
+    Args:
+        num_imgs: num of images for the optimization
+        obj_size: size of obj
+        lens_size: size of lens
+
+    Returns:
+        batch of objects.
+    """
     image_dir = './data/objs/'
     image_names = sorted(os.listdir(image_dir))
     inputs = []
@@ -41,7 +49,7 @@ def load_target(num_imgs, pattern_size, lens_size):
     return target.to(device)
 
 
-objs = load_target(num_imgs=4, pattern_size=1200, lens_size = 1200)
+objs = load_target(num_imgs=4, pattern_size=1200, lens_size =1200)
 show(objs[0, 0], 'target')
 print(objs.max(), objs.min())
 
@@ -53,6 +61,9 @@ lens_optimizer = MBOLens(
                     optim_param['num_iters'], 
                     optim_param['source_mask_optim_lr'],
                     optim_param['use_scheduler'], 
+                    optim_param['image_visualize_interval'],
+                    metalens_optics_param['cam_a_poisson'],
+                    metalens_optics_param['cam_b_sqrt'],
                     save_dir=optim_param['save_dir'],
                     loss_type=metalens_optics_param['loss_type'],
                     deconv_method=metalens_optics_param['deconv_method'],

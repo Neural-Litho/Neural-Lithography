@@ -7,6 +7,8 @@ import torch
 import torch.nn as nn
 import cv2
 from torch.distributions import Normal
+import matplotlib.pyplot as plt
+import copy 
 
 def sensor_noise(input, a_poisson=0.004, b_sqrt=0.016):
     """
@@ -110,6 +112,27 @@ def central_crop3d(variable, ts = None, dim=5):
     else:
         raise NotImplementedError
     return cropped
+
+
+def otsu_binarize(slice, visulize=False, erision_flag=False):
+    if visulize:
+        plt.figure()
+        plt.hist(slice.ravel(), 256)
+        plt.show()
+
+    grey = copy.deepcopy(slice)
+    grey[grey > 160] = 160
+    grey = cv2.GaussianBlur(grey, (5, 5), 0)
+
+    kernel_size = 5
+    # grey = cv2.bilateralFilter(grey,5,75,75)
+    _, bin = cv2.threshold(grey, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    if erision_flag == True:
+        sigma = 0.3*((kernel_size-1)*0.5-1)+0.8
+        kernel = cv2.getGaussianKernel(ksize=kernel_size, sigma=sigma)
+        bin = cv2.erode(bin, kernel, iterations=1)
+    return bin
+
 
 class InterpolateComplex2d(nn.Module):
     def __init__(self, input_dx, input_field_shape, output_dx, output_field_shape=None, mode='bicubic', del_intermediate_var=False, match_energy_sign=True) -> None:
