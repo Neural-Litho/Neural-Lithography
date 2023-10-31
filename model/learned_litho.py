@@ -81,7 +81,7 @@ class LearnedLithoParamteriziedPhysics(BaseLithoModel):
             int(torch.div(sigma, self.hatching_distance, rounding_mode='trunc'))*6+1, 101)
         rangexy = torch.div(stepxy, 2, rounding_mode='trunc')
         xycord = torch.linspace(-rangexy, rangexy,
-                                steps=stepxy).to(device)*self.dx
+                                steps=stepxy).to(device)*self.hatching_distance
         kernel = torch.exp(-(xycord[:, None]**2 +
                              xycord[None, :]**2)/2/sigma**2)
         
@@ -141,7 +141,7 @@ class LearnedLitho3D(BaseLithoModel):
             int(torch.div(sigma, self.hatching_distance, rounding_mode='trunc'))*6+1, 101)
         rangexy = torch.div(stepxy, 2, rounding_mode='trunc')
         xycord = torch.linspace(-rangexy, rangexy,
-                                steps=stepxy).to(device)*self.dx
+                                steps=stepxy).to(device)*self.hatching_distance
         kernel = torch.exp(-(xycord[:, None]**2 +
                              xycord[None, :]**2)/2/sigma**2)
         kernel = kernel / torch.sum(kernel)

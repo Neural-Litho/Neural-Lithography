@@ -64,10 +64,11 @@ class AFMdataset(Dataset):
         return sample
 
 
-def afm_dataloader(data_path, batch_size, shuffle, sample_ratio_to_train_and_val,
+def afm_dataloader(data_path, slicing_distance, batch_size, shuffle, sample_ratio_to_train_and_val,
                    num_data_to_load, random_crop, output_size):
 
     afm_set = AFMdataset(data_path,
+                         slicing_distance,
                          num_data_to_load,
                          random_crop,
                          output_size,)
