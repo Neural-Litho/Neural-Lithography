@@ -29,5 +29,6 @@ metalens_optics_param = {
     'loss_type': 'deconv_loss',  # deconv_loss, cbr
     'doe_type':'1d', # 2d or 1d; 1d means the doe is rotational symmetrical
     'cam_a_poisson':.004, 
-    'b_sqrt':0.02,
+    'cam_b_sqrt':0.02,
+    'Delta_n': 0.545,  # refractive index
 }

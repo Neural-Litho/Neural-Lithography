@@ -22,7 +22,7 @@ class DOE(nn.Module):
         elif self.doe_type == '1d':
             self.logits = nn.parameter.Parameter(
                 torch.rand(doe_layers, num_partition, doe_num_level), requires_grad=True)
-            self.generate_mesh_mapping()
+            self.indices = self.generate_mesh_mapping(self.doe_size)
         self.doe_num_level = doe_num_level
         self.doe_layers = doe_layers
         self.level_logits = torch.arange(0, self.doe_num_level).to(device)
@@ -35,13 +35,13 @@ class DOE(nn.Module):
             doe_images = torch.zeros(
                 [self.doe_layers, self.doe_size, self.doe_size])
             for i in range(self.doe_layers):
-                doe_images[i] = doe_res[i, self.inds]
+                doe_images[i] = doe_res[i, self.indices]
         elif self.doe_type == '2d':
             doe_images = doe_res
         return doe_images
 
     def generate_mesh_mapping(self, doe_size):
-        # self.inds contains a 2D tensor of index point to 1D doe values
+        # self.indices contains a 2D tensor of index point to 1D doe values
         coord_x = torch.linspace(-doe_size/2, doe_size/2, int(doe_size))
         coord_y = torch.linspace(-doe_size/2, doe_size/2, int(doe_size))
 
@@ -68,7 +68,7 @@ class DOE(nn.Module):
             doe_sample = torch.zeros(
                 [self.doe_layers, self.doe_size, self.doe_size])
             for i in range(self.doe_layers):
-                doe_sample[i] = doe_sample_1d[i, self.inds]
+                doe_sample[i] = doe_sample_1d[i, self.indices]
 
         doe_sample = self.m(doe_sample[None, :, :, :])
 

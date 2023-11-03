@@ -66,7 +66,6 @@ lens_optimizer = MBOLens(
                     metalens_optics_param['cam_b_sqrt'],
                     save_dir=optim_param['save_dir'],
                     loss_type=metalens_optics_param['loss_type'],
-                    deconv_method=metalens_optics_param['deconv_method'],
                     )
 
 optimized_doe, print_pred = lens_optimizer.optim(objs)

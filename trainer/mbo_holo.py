@@ -9,7 +9,7 @@ import numpy as np
 
 from optics.free_space_fwd import FreeSpaceFwd
 from optics.doe import DOE
-from param.param_inv_design_holography import holo_optics_param
+from param.param_inv_design_holography import holo_optics_param, litho_param
 from model.learned_litho import model_selector
 from utils.visualize_utils import show, plot_loss
 from utils.general_utils import cond_mkdir, normalize, otsu_binarize
@@ -25,7 +25,8 @@ class HoloPipeline(nn.Module):
     """
     def __init__(self, model_choice, use_litho_model_flag) -> None:
         super().__init__()
-
+        
+        self.model_choice = model_choice
         self.litho_model = model_selector(model_choice)
         self.use_litho_model_flag = use_litho_model_flag
         
@@ -38,6 +39,7 @@ class HoloPipeline(nn.Module):
         self.doe = DOE(holo_optics_param['num_partition'], 
                        holo_optics_param['num_level'],
                        holo_optics_param['input_shape'], 
+                       litho_param['slicing_distance'],
                        doe_type='2d')
         
         # init a holography system
@@ -49,7 +51,7 @@ class HoloPipeline(nn.Module):
 
     def load_pretrianed_model(self):
         checkpoint = torch.load(
-            'model/ckpt/' + "learned_litho_model_pbl3d.pt")
+            'model/ckpt/' + "learned_litho_model_"+ self.model_choice + ".pt")
         self.litho_model.load_state_dict(checkpoint)
         for param in self.litho_model.parameters():
             param.requries_grad = False
@@ -75,7 +77,7 @@ class MBOHolo(object):
     The models are 'litho model' + 'task (holo) model'.
     """
     def __init__(self, model_choice, use_litho_model_flag, num_iters, lr, 
-                 use_scheduler, image_visualize_interval, save_dir='', eff_scale_factor=0.1) -> None:
+                 use_scheduler, image_visualize_interval, save_dir='', eff_weight=0.1) -> None:
 
         self.num_iters = num_iters
         self.holo_pipeline = HoloPipeline(model_choice, use_litho_model_flag)
@@ -84,7 +86,7 @@ class MBOHolo(object):
             [self.holo_pipeline.doe.logits], lr=lr)
 
         self.loss_fn = nn.MSELoss()
-        self.eff_scale_factor = eff_scale_factor
+        self.eff_weight = eff_weight
         self.image_visualize_interval = image_visualize_interval
         self.save_dir = save_dir
         cond_mkdir(self.save_dir)
@@ -94,16 +96,16 @@ class MBOHolo(object):
             self.scheduler = ReduceLROnPlateau(self.mask_optimizer, 'min')
 
     def hoe_loss(self, holo_intensity, target):
-        target_binarized = torch.tensor(otsu_binarize((target*255).cpu().numpy())).to(target.device)
         
-        N_img = torch.sum(target_binarized)  # number of pixels in target
+        N_img = torch.sum(target)  # number of pixels in target
         
-        I_avg = torch.sum(holo_intensity*target_binarized)/N_img # avg of img region
+        I_avg = torch.sum(holo_intensity*target)/N_img  # avg of img region
         
         rmse_loss = torch.sqrt(self.loss_fn(holo_intensity/I_avg, target))
-        eff = torch.sum(holo_intensity*target_binarized)/(torch.prod(target_binarized.shape[-2:])**2)
+        eff = torch.sum(holo_intensity*target) / \
+            (torch.prod(torch.tensor(target.shape[-2:])))
         
-        loss = rmse_loss + (1-eff) * self.eff_scale_factor
+        loss = rmse_loss + (1-eff) * self.eff_weight
         return loss
 
     def optim(self, batch_target):
@@ -140,7 +142,7 @@ class MBOHolo(object):
         cv2.imwrite(self.save_dir+'/mask'+'.bmp', mask_to_save)
 
         ssim_fun = SSIMLoss(window_size=1)
-        metric_ssim = 1-ssim_fun(normalize(holo_intensity), target)*2
+        metric_ssim = 1-ssim_fun(normalize(holo_intensity), batch_target)*2
         print('SSIM between target and image is:', metric_ssim)
         
         return mask

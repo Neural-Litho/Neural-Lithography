@@ -20,9 +20,9 @@ from utils.img_processing import torch_richardson_lucy_fft
 
 
 class MBOLens(object):
-    def __init__(self, model_choice, use_litho_model_flag, num_iters, lr, use_scheduler, image_visualize_interval, cam_a_poisson, cam_b_sqrt, save_dir='', loss_type=None, deconv_method=None) -> None:
+    def __init__(self, model_choice, use_litho_model_flag, num_iters, lr, use_scheduler, image_visualize_interval, cam_a_poisson, cam_b_sqrt, save_dir='', loss_type=None) -> None:
         
-        self.deconv_method = deconv_method
+        self.model_choice = model_choice
         self.use_litho_model_flag = use_litho_model_flag
         self.cam_a_poisson = cam_a_poisson
         self.cam_b_sqrt = cam_b_sqrt
@@ -33,15 +33,15 @@ class MBOLens(object):
             metalens_optics_param['input_dx'], metalens_optics_param['input_shape'],
             metalens_optics_param['output_dx'], metalens_optics_param['output_shape'],
             metalens_optics_param['lambda'], metalens_optics_param['z'], 
-            metalens_optics_param['pad_scale']
+            metalens_optics_param['pad_scale'], metalens_optics_param['Delta_n']
             )
         
         self.doe = DOE(
                        metalens_optics_param['num_partition'],
                        metalens_optics_param['num_level'], 
                        metalens_optics_param['input_shape'], 
-                       metalens_optics_param['doe_type'],
                        litho_param['slicing_distance'],
+                       doe_type=metalens_optics_param['doe_type']
                        )
         
         self.load_pretrianed_model(use_litho_model_flag)
@@ -67,6 +67,7 @@ class MBOLens(object):
                 self.mask_optimizer, step_size=25, gamma=0.5)
     
     def visualize(self, i, mask, sensor_img, psf, deconv_img, itr_list, loss_list, mssim, mpsnr, psf_sum, loss):
+        psf_save = None
         if (i + 1) % self.image_visualize_interval == 0:
             show(mask[0, 0].detach().cpu(),
                     'doe mask at itr {}'.format(i), cmap='jet')
@@ -115,7 +116,7 @@ class MBOLens(object):
         
         if use_litho_model_flag:
             checkpoint = torch.load(
-                'model/ckpt/' + "learned_litho_model_pbl3d.pt")
+                'model/ckpt/' + "learned_litho_model_"+ self.model_choice + ".pt")
             self.litho_model.load_state_dict(checkpoint)
             for param in self.litho_model.parameters():
                 param.requries_grad = False
