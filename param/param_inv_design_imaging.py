@@ -7,7 +7,7 @@ settings = {
 
 # optim param
 optim_param = {
-    'model_choice': 'pbl3d', # from {pbl3d, fno, physics}
+    'model_choice': 'fno', # from {pbl3d, fno, physics}
     'use_scheduler': True,
     'num_iters': 2000,
     'source_mask_optim_lr':  1e0,  

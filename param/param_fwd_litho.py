@@ -21,7 +21,7 @@ litho_param = {
 trainer_param = {
     'model_choice': 'fno',  # choose from 'pbl3d', 'fno' and 'physics'
     'save_model_check_point': True,
-    'model_update_epochs': 4000,
+    'model_update_epochs': 1000,
     'model_lr': 1e-4, # 1e-4 for fno, 5e-4 for pbl3d, 1e-3 for physics
     'loss_beta': 0.1, # useful when using the Huber loss
     'add_img_vis': True, 
