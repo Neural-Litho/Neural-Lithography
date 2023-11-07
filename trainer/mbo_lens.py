@@ -1,6 +1,7 @@
 
 
-""" model based optimization for    
+""" optimize the imaging lens; 
+    either direct or computational.   
 """
 
 from config import *

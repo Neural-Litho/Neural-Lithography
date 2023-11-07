@@ -1,7 +1,7 @@
 
 
 # %%
-""" For the inverse design of HOE purpose. 
+""" Inverse design the HOE. 
     Here we use pre-trained model to find a better doe layout to fab.
 """
 from config import device

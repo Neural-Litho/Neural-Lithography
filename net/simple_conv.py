@@ -1,7 +1,6 @@
 
 
-""" 
-    Very simple convolutional neural networks used in our neural litho work. 
+""" Simple convolutional neural networks used in our neural litho work. 
     NeuralPointwiseNet + NeuralAreawiseNet
     inspired by Tseng 2022, neural photo-finishing.
 """
@@ -10,8 +9,8 @@ import torch.nn as nn
 
 
 class NeuralPointwiseNet(nn.Module):
-    """key point is that kernel_size=1"""
-
+    """ kernel_size=1
+    """
     def __init__(self, ch=64, leak=0.2):
         super(NeuralPointwiseNet, self).__init__()
         self.conv0 = nn.Conv2d(in_channels=1, out_channels=2*ch, kernel_size=1)
@@ -31,9 +30,9 @@ class NeuralPointwiseNet(nn.Module):
 
 
 
-
 class NeuralAreawiseNet(nn.Module):
-    """We use kernel_size=3."""
+    """ kernel_size=3
+    """
     def __init__(self, ch=32, leak=0.2, kernel_size=3, padding=1):
         super(NeuralAreawiseNet, self).__init__()
         

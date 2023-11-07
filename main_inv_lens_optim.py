@@ -1,7 +1,7 @@
 
 
 #%%
-""" For the inverse design purpose. 
+""" Inverse design the lens. 
     Here we use pre-calibrated model to find a better lens design. 
 """
 from config import *

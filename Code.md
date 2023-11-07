@@ -16,7 +16,7 @@ Premeir: we understand the litho modelling.  -->
 
 ## Introduction
 
-This shows how to use the code in the associated repo to reproduce the method in neural litho. 
+In what follows we shows how to use the code in the repo to reproduce the method in our neural litho paper. 
 
 ## Step 0: Install Requirements
 To use the Neural Lens Modeling implementation, you need Python (version 3.7 or higher). Python environment including the required dependencies. This requires an NVIDIA GPU.
@@ -31,7 +31,7 @@ Or  install the packages when necessary (**Recommended**).
 
 ## Step 1: Litho Dataset Generation
 
-To generate a dataset for digitalize a real-world litho system, follow these steps:
+To generate a dataset for digitalize a real-world litho process, follow these steps:
 
 1. Prepare the random designed masks so as to explore the modelling of a litho system. We emprically find ~100 patterns would suffice when we tested on TPL.
 2. Execectute the masks in the litho masks and get prints after the necessary procedures; Measure the prints in a high-definition 3D imaging system (in our case, the AFM).
@@ -52,9 +52,9 @@ To train the neural networks using the generated or captured dataset, follow the
 
 ## Step 3 (Optional): Use neural litho model in the downstream computational optics tasks 
 
-To use the in the downstream computational optics tasks, follow these steps:
+To use the learned litho model in the downstream tasks, such as the computational optics tasks demonstrated in the paper, pls follow these steps:
 
-1. Load the pretrined litho model.
+1. Set the ``
 2. Run either `main_inv_holo_optim.py` or `main_inv_lens_optim.py` for HOE or Lens design.
 3. After the optimization, we get the printable design where the design considers both manufacturability and task metrics.
 

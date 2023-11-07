@@ -1,6 +1,6 @@
 
 
-""" Fitting the forward modelling from the real-world lithography results. 
+""" Fitting a forward model of real-world photolithography process. 
 """
 
 # %%
