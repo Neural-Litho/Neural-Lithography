@@ -1,8 +1,8 @@
 # Neural Lithography
 
 Repo for the project - **Neural Lithography: Close the Design to Manufacturing Gap in Computational Optics with a 'Real2Sim' Learned Photolithography Simulator**
-#### [Project Page](https://neural-litho.github.io/) | [ArXiv](https://arxiv.org/abs/2309.17343)|  [Bibtex](#bibtex)
-[Cheng Zheng](https://zcshinee.github.io/chengzheng.github.io/)\* $^{1}$, [Guangyuan Zhao](https://twitter.com/guangyuan_zhao)\* $^{2}$, [Peter So](https://meche.mit.edu/people/faculty/ptso@mit.edu) $^{1}$. (*equal contribution)<br>
+#### [Project Page](https://neural-litho.github.io/) | [ArXiv](https://arxiv.org/abs/2309.17343)|  
+[Cheng Zheng](https://zcshinee.github.io/)\* $^{1}$, [Guangyuan Zhao](https://twitter.com/guangyuan_zhao)\* $^{2}$, [Peter So](https://meche.mit.edu/people/faculty/ptso@mit.edu) $^{1}$. (*equal contribution)<br>
 $^1$ MIT, $^2$ CUHK.
 
 :pushpin: Related paper accepted to [SIGGRAPH ASIA 2023](https://asia.siggraph.org/2023/submissions/technical-papers/).
@@ -17,7 +17,7 @@ $^1$ MIT, $^2$ CUHK.
 
 
 <details> 
-<summary>To expand, this work answers two questions in computational optics (including computational lithography).</summary>
+<summary>To expand, this work answers two fundmental questions in computational optics (including computational lithography). See our definition of computational optics in xxx. </summary>
 
 
 ### This work answers two fundmental questions in computational optics (including computational lithography):
@@ -39,10 +39,10 @@ $^1$ MIT, $^2$ CUHK.
 2. Close the Design-to-manfuctuting gap via co-optimizing the manufacturiability and the task design with two intersected differentiable simulators (Litho + Task).
 ![DTCO](github_figures/DTCO.png)
 <!-- *t* -->
+<!-- ----------------------------------------- -->
 
 </details>
 
------------------------------------------
 ## How to Use this Repo?
 See details in [code.md](code.md).
 
