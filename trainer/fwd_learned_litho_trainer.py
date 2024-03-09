@@ -8,7 +8,7 @@ from datetime import datetime
 from torch.optim.lr_scheduler import ExponentialLR
 from utils.general_utils import cond_mkdir
 from utils.visualize_utils import show, plot_loss
-from model.learned_litho import model_selector
+from litho_model.learned_litho import model_selector
 
 
 class FwdLithoTrainer(object):

@@ -2,7 +2,7 @@
 
 from config import *
 import math
-from optics.propagator import RSCProp
+from task_optics.propagator import RSCProp
 
 
 class FreeSpaceFwd(nn.Module):

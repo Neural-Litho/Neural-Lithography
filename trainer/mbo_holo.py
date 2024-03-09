@@ -7,10 +7,10 @@ import torch.nn as nn
 import cv2
 import numpy as np
 
-from optics.free_space_fwd import FreeSpaceFwd
-from optics.doe import DOE
+from task_optics.free_space_fwd import FreeSpaceFwd
+from task_optics.doe import DOE
 from param.param_inv_design_holography import holo_optics_param, litho_param
-from model.learned_litho import model_selector
+from litho_model.learned_litho import model_selector
 from utils.visualize_utils import show, plot_loss
 from utils.general_utils import cond_mkdir, normalize, otsu_binarize
 

@@ -63,3 +63,14 @@ If you find our code or any of our materials useful, please cite our paper:
             year={2023}
             }
 ```
+
+
+```
+@inproceedings{zheng2023close,
+  title={Close the Design-to-Manufacturing Gap in Computational Optics with a'Real2Sim'Learned Two-Photon Neural Lithography Simulator},
+  author={Zheng, Cheng and Zhao, Guangyuan and So, Peter},
+  booktitle={SIGGRAPH Asia 2023 Conference Papers},
+  pages={1--9},
+  year={2023}
+}
+```
