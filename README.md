@@ -1,7 +1,7 @@
 # Neural Lithography
 
 Repo for the project - **Neural Lithography: Close the Design to Manufacturing Gap in Computational Optics with a 'Real2Sim' Learned Photolithography Simulator**
-#### [Project Page](https://neural-litho.github.io/) | [ArXiv](https://arxiv.org/abs/2309.17343)|  
+#### [Project Page](https://neural-litho.github.io/) | [ArXiv](https://arxiv.org/abs/2309.17343)| [MIT News](https://news.mit.edu/2023/closing-design-manufacturing-gap-optical-devices-1213)
 [Cheng Zheng](https://zcshinee.github.io/)\* $^{1}$, [Guangyuan Zhao](https://twitter.com/guangyuan_zhao)\* $^{2}$, [Peter So](https://meche.mit.edu/people/faculty/ptso@mit.edu) $^{1}$. (*equal contribution)<br>
 $^1$ MIT, $^2$ CUHK.
 
@@ -67,10 +67,10 @@ If you find our code or any of our materials useful, please cite our paper:
 
 ```
 @inproceedings{zheng2023close,
-  title={Close the Design-to-Manufacturing Gap in Computational Optics with a'Real2Sim'Learned Two-Photon Neural Lithography Simulator},
-  author={Zheng, Cheng and Zhao, Guangyuan and So, Peter},
-  booktitle={SIGGRAPH Asia 2023 Conference Papers},
-  pages={1--9},
-  year={2023}
+            title={Close the Design-to-Manufacturing Gap in Computational Optics with a'Real2Sim'Learned Two-Photon Neural Lithography Simulator},
+            author={Zheng, Cheng and Zhao, Guangyuan and So, Peter},
+            booktitle={SIGGRAPH Asia 2023 Conference Papers},
+            pages={1--9},
+            year={2023}
 }
 ```
