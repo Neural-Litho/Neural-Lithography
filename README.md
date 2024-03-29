@@ -13,7 +13,7 @@ $^1$ MIT, $^2$ CUHK.
 --------------
 ## What We Contribute?
 
-**TL;DR:** :one: A real2sim pipeline to quantitatively digitalize a real-world lithography system into a high-fidelity neural lithography digital twin; :two: A fully-differentiable bi-level design-manufacturing co-optimization framework to bridge the design-to-manufacturing gap in computational optics. 
+**TL;DR:** :one: A real2sim pipeline to quantitatively digitalize a real-world lithography system into a high-fidelity neural lithography digital twin; :two: A fully-differentiable two-stage design-manufacturing co-optimization framework to bridge the design-to-manufacturing gap in computational optics. 
 
 
 <details> 

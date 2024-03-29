@@ -29,6 +29,4 @@ trainer_param = {
     'clipping_value': None,
     'early_stop_patience': 20,
     'use_scheduler': False,
-    # 'use_ensemble': False,
-    # 'num_ensembles':1, # should >1
 }
