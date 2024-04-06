@@ -55,7 +55,7 @@ See details in [code.md](code.md).
 ## Citation
 
 If you find our code or any of our materials useful, please cite our paper:
-```
+```bibtex
 @article{zheng2023neural,
             title={Neural Lithography: Close the Design-to-Manufacturing Gap in Computational Optics with a'Real2Sim'Learned Photolithography Simulator},
             author={Zheng, Cheng and Zhao, Guangyuan and So, Peter TC},
@@ -65,7 +65,7 @@ If you find our code or any of our materials useful, please cite our paper:
 ```
 
 
-```
+```bibtex
 @inproceedings{zheng2023close,
             title={Close the Design-to-Manufacturing Gap in Computational Optics with a'Real2Sim'Learned Two-Photon Neural Lithography Simulator},
             author={Zheng, Cheng and Zhao, Guangyuan and So, Peter},
