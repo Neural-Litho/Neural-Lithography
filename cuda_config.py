@@ -1,4 +1,4 @@
-
+# This file contains the cuda configuration for the project.
 
 import torch
 import torch.nn as nn

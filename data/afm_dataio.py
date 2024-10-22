@@ -1,4 +1,7 @@
 
+
+""" dataio for the AFM dataset to train the neural litho modelling
+"""
 import torch
 import os
 import json
@@ -33,8 +36,13 @@ class AFMdataset(Dataset):
         self.map_location = map_location
 
     def tpl_levels_to_heights(self, mask, afm, idx):
+        """ NOTE 
+        - Convert the mask levels to the real height. 
+        - This step is tricky and varies from one litho system to another. 
+        - Pls be careful and apply appropriate adjustments when adapting the code to your own litho system.
+        """
         # converts the mask levels to the real height
-        mask *= self.slicing_distance  # 1 level corresponds to 0.1um
+        mask *= self.slicing_distance  # 1 level corresponds to slicing_distance like 0.1um
         
         # height in the dict are in m, we convert it to um
         afm = afm / 255 * self.max_height_dict[self.mask_names[idx]] * 1e6

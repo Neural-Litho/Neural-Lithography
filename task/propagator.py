@@ -1,5 +1,6 @@
 
-"""optical propagators under various approximating conditions
+"""optical propagator under rayleigh-sommerfeld approximation
+
 """
 
 import torch

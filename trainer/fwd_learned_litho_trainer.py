@@ -1,6 +1,6 @@
 
 
-from config import device
+from cuda_config import device
 import torch
 import torch.nn as nn 
 import math
@@ -8,7 +8,7 @@ from datetime import datetime
 from torch.optim.lr_scheduler import ExponentialLR
 from utils.general_utils import cond_mkdir
 from utils.visualize_utils import show, plot_loss
-from litho_model.learned_litho import model_selector
+from litho.learned_litho import model_selector
 
 
 class FwdLithoTrainer(object):
@@ -147,5 +147,4 @@ class FwdLithoTrainer(object):
                    'model/ckpt/' + self.model_choice + "_loss.pt")
         
         end_time_train = datetime.now()
-        
         print("duration_train: {}", (end_time_train - start_time_train))

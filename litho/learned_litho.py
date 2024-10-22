@@ -3,12 +3,11 @@
 """ Learned Litho Model
 """
 
-
 import torch.nn as nn
 import torch
 from utils.general_utils import conv2d
 from net.simple_conv import NeuralPointwiseNet, NeuralAreawiseNet
-from config import *
+from cuda_config import device
 from net.fno import FNO2d
 from param.param_fwd_litho import litho_param
 
@@ -26,6 +25,8 @@ def model_selector(model_choice):
 
 
 class BaseLithoModel(nn.Module):
+    """ Base class for litho model.
+    """
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
     
@@ -38,14 +39,13 @@ class BaseLithoModel(nn.Module):
         return resist_image
     
     def forward(self, masks):
-        
         aerial_image = self.get_aerial_image(masks)
         resist_image = self.get_resist_image(aerial_image)
         return resist_image
 
          
 class LearnedLithoParamteriziedPhysics(BaseLithoModel):
-    """ 3D litho model fitting from the pure physics based model.
+    """ 3D litho model fitting from the pure parameterized physics based model.
     """
     def __init__(self, hatching_distance=0.1, sigmao=0.2, sigmac=1.5063, thresh=1.6033, kmax=1.0, kmin=0.5, alpha=5.2514, height_bias=-0.1374, sigmac_range = 2.5) -> None:
         super().__init__()
@@ -62,8 +62,6 @@ class LearnedLithoParamteriziedPhysics(BaseLithoModel):
         self.height_bias = nn.parameter.Parameter(torch.tensor([height_bias]))
 
     def shrinkage_transform(self, input):
-        """ 
-        """
         kmin = torch.sigmoid(self.kmin)
         dmax = torch.amax(input, dim=(2, 3), keepdim=True)
         sh = (self.kmax-kmin)/dmax*input+kmin
@@ -120,7 +118,7 @@ class LearnedLithoParamteriziedPhysics(BaseLithoModel):
     
         aerial_image = self.get_aerial_image(masks)
         resist_image = self.get_resist_image(aerial_image)
-
+        
         return resist_image
 
 
@@ -152,7 +150,10 @@ class LearnedLitho3D(BaseLithoModel):
         return kernel[None, None]
     
     def get_aerial_image(self, masks):
-        """ in the TPL system we experiment with the illumination is incoherent pointwise scanning. thus we model it as a 2D convolution.
+        """ 
+        In this work we experiment with TPL system.
+        the illumination of TPL is incoherent point-wise scanning. 
+        Thus we model aerial image as a 2D convolution.
         """
         illum_kernel = self.create_gaussian_kernel(self.sigmao)
         aerial_image = conv2d(masks, illum_kernel, intensity_output=True)
@@ -161,16 +162,16 @@ class LearnedLitho3D(BaseLithoModel):
     
     def get_resist_image(self, aerial_image):
         
-        # Thresholding
+        # Thresholding 
         exposure = self.thresh_approx(
         aerial_image)
         
-        # Diffusion
+        # Diffusion of reactions
         sigmac = torch.sigmoid(self.sigmac_param)*self.sigmac_range
         diffusion_kernel = self.create_gaussian_kernel(sigmac)
         diffusion = conv2d(exposure, diffusion_kernel, intensity_output=True)
         
-        # Shrinkage
+        # Shrinkage of the resist
         shrinkage = self.shrink_approx(diffusion)
         resist_image = self.out_layer(exposure*shrinkage)
         return resist_image

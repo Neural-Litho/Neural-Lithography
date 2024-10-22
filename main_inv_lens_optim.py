@@ -4,7 +4,7 @@
 """ Inverse design the lens. 
     Here we use pre-calibrated model to find a better lens design. 
 """
-from config import *
+from cuda_config import *
 from param.param_inv_design_imaging import optim_param, settings, metalens_optics_param
 from trainer.mbo_lens import MBOLens
 

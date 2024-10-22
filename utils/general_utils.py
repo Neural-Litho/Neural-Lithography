@@ -1,8 +1,7 @@
 
-from config import *
+from cuda_config import *
 import numpy as np
 import os
-import math
 import torch
 import torch.nn as nn
 import cv2
@@ -25,7 +24,6 @@ def sensor_noise(input, a_poisson=0.004, b_sqrt=0.016):
     # Add Gaussian readout noise.
     read_noise = Normal(loc=torch.zeros_like(output), scale=b_sqrt)
     output = read_noise.sample() + output
-
     return output
 
 def load_image(file_name: str, normlize_flag=True, torch_sign=True) -> torch.Tensor:
@@ -135,6 +133,8 @@ def otsu_binarize(slice, visulize=False, erision_flag=False):
 
 
 class InterpolateComplex2d(nn.Module):
+    """Interpolate the complex field in 2D.
+    """
     def __init__(self, input_dx, input_field_shape, output_dx, output_field_shape=None, mode='bicubic', del_intermediate_var=False, match_energy_sign=True) -> None:
         super().__init__()
         self.mode = mode
@@ -256,9 +256,10 @@ def pad_crop_to_size(u, dst_size):
 
 
 def conv2d(obj, psf, shape="same", intensity_output=False):
-    """[Torch 2D Spatial convolution done via multiplication in Fourier domain]
-    Padding step is necessary; otherwise it will be nonlinear circular convolution.
-    See more in https://ww2.mathworks.cn/matlabcentral/answers/38066-difference-between-conv-ifft-fft-when-doing-convolution
+    """
+    Torch 2D Spatial convolution implemented in Fourier domain.
+    - Padding step is necessary; otherwise it will be nonlinear circular convolution.
+    - See more in https://ww2.mathworks.cn/matlabcentral/answers/38066-difference-between-conv-ifft-fft-when-doing-convolution
     """
 
     _, _, im_height, im_width = obj.shape

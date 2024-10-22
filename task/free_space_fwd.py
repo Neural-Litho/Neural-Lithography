@@ -1,6 +1,6 @@
 
 
-from config import *
+from cuda_config import *
 import math
 from task_optics.propagator import RSCProp
 

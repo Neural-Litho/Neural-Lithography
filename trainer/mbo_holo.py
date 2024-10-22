@@ -1,18 +1,18 @@
 
 
-""" Optim the HOE
+""" Model based optimization for the holographic optical element (HOE).
 """
 import torch
 import torch.nn as nn
 import cv2
 import numpy as np
 
-from task_optics.free_space_fwd import FreeSpaceFwd
-from task_optics.doe import DOE
+from task.free_space_fwd import FreeSpaceFwd
+from task.doe import DOE
 from param.param_inv_design_holography import holo_optics_param, litho_param
-from litho_model.learned_litho import model_selector
+from litho.learned_litho import model_selector
 from utils.visualize_utils import show, plot_loss
-from utils.general_utils import cond_mkdir, normalize, otsu_binarize
+from utils.general_utils import cond_mkdir, normalize
 
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from kornia.losses import SSIMLoss

@@ -2,9 +2,9 @@
 
 # %%
 """ Inverse design the HOE. 
-    Here we use pre-trained model to find a better doe layout to fab.
+    Here we use pre-trained neural litho digital twin to find a better doe layout to send to fab.
 """
-from config import device
+from cuda_config import device
 from trainer.mbo_holo import MBOHolo
 from param.param_inv_design_holography import optim_param, settings
 from utils.visualize_utils import show
@@ -16,7 +16,7 @@ holo_target = load_image('data/target.bmp', normlize_flag=True)[None].to(device)
 show(holo_target[0, 0], 'target')
 
 # %%
-
+# initialize the optimizer
 hoe_optimizer = MBOHolo(optim_param['model_choice'], 
                         settings['use_litho_model_flag'],
                         optim_param['num_iters'], 
@@ -26,6 +26,7 @@ hoe_optimizer = MBOHolo(optim_param['model_choice'],
                         save_dir=optim_param['save_dir'],
                         )
 
+# optimize the hoe
 optimized_hoe = hoe_optimizer.optim(holo_target)
 
 

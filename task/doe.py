@@ -1,7 +1,9 @@
+""" This file contains the implementation of the diffractive optical element (DOE).
+"""
 
 import torch.nn as nn
 import torch
-from config import device
+from cuda_config import device
 import math
 from utils.gumbel_max_pytorch import gumbel_softmax
 

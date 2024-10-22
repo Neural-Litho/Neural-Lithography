@@ -2,16 +2,16 @@
 
 Repo for the project - **Neural Lithography: Close the Design to Manufacturing Gap in Computational Optics with a 'Real2Sim' Learned Photolithography Simulator**
 #### [Project Page](https://neural-litho.github.io/) | [ArXiv](https://arxiv.org/abs/2309.17343)| [MIT News](https://news.mit.edu/2023/closing-design-manufacturing-gap-optical-devices-1213)
-[Cheng Zheng](https://zcshinee.github.io/)\* $^{1}$, [Guangyuan Zhao](https://twitter.com/guangyuan_zhao)\* $^{2}$, [Peter So](https://meche.mit.edu/people/faculty/ptso@mit.edu) $^{1}$. (*equal contribution)<br>
+[Cheng Zheng](https://zcshinee.github.io/)<sup>✉,†,</sup>${^1}$, [Guangyuan Zhao](https://twitter.com/guangyuan_zhao)<sup>✉,†,</sup>$^{2}$, [Peter So](https://meche.mit.edu/people/faculty/ptso@mit.edu) $^{1}$. 
+† denotes equal contribution; ✉ denotes corresponding author<br>
 $^1$ MIT, $^2$ CUHK.
 
 :pushpin: Related paper accepted to [SIGGRAPH ASIA 2023](https://asia.siggraph.org/2023/submissions/technical-papers/).
 
-
-![teaser](github_figures/Teaser.png)
+![teaser](asserts/Teaser.png)
 
 --------------
-## What We Contribute?
+## 1. What We Contribute?
 
 **TL;DR:** :one: A real2sim pipeline to quantitatively digitalize a real-world lithography system into a high-fidelity neural lithography digital twin; :two: A fully-differentiable two-stage design-manufacturing co-optimization framework to bridge the design-to-manufacturing gap in computational optics. 
 
@@ -28,31 +28,33 @@ $^1$ MIT, $^2$ CUHK.
   - One should be the **Design to Manufacturing gap**. | "Yes you can design a perfect lens, but you cannot guarantee the post-manufacturing performance." 
 
 
-![teaser](github_figures/two_questions.png)
+![teaser](asserts/two_questions.png)
 
 
 ### Accordingly, our work tackles the above questions and opens up two exciting research directions:
 
 1. Real2Sim learning for 3D modelling the fabrication outcome of any real-world photolithography system.
-![DTCO](github_figures/digitalization_litho_system.png)
+![DTCO](asserts/digitalization_litho_system.png)
 
 2. Close the Design-to-manfuctuting gap via co-optimizing the manufacturiability and the task design with two intersected differentiable simulators (Litho + Task).
-![DTCO](github_figures/DTCO.png)
+![DTCO](asserts/DTCO.png)
 <!-- *t* -->
 <!-- ----------------------------------------- -->
 
 </details>
 
-## How to Use this Repo?
+## 2. How to Use this Repo?
 See details in [code.md](code.md).
 
 
 
-## TODO 
+## 3. TODO 
+This repo is under active development with more features to be released. 
 - [x] Get the first release of the code with code for experiments.
 - [ ] Create a simulator to be used as a sandbox.
+- [ ] Neural Litho 2.0. Please stay tuned.
 
-## Citation
+## 4. Citation
 
 If you find our code or any of our materials useful, please cite our paper:
 ```bibtex
@@ -63,7 +65,6 @@ If you find our code or any of our materials useful, please cite our paper:
             year={2023}
             }
 ```
-
 
 ```bibtex
 @inproceedings{zheng2023close,

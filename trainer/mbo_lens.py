@@ -1,66 +1,121 @@
 
 
-""" optimize the imaging lens; 
-    either direct or computational.   
+"""  model-based optimization for imaging lens design.
 """
 
-from config import *
+import torch
+import torch.nn as nn
 import cv2
 import numpy as np
 from torch.optim.lr_scheduler import StepLR
 from kornia.losses import SSIMLoss, PSNRLoss
-
-from optics.free_space_fwd import FreeSpaceFwd 
-from optics.doe import DOE
+from task.free_space_fwd import FreeSpaceFwd 
+from task.doe import DOE
 from param.param_inv_design_imaging import metalens_optics_param
 from param.param_fwd_litho import litho_param
-from model.learned_litho import model_selector
+from litho.learned_litho import model_selector
 from utils.visualize_utils import show, plot_loss
 from utils.general_utils import normalize, center_to_background_ratio, central_crop, sensor_noise, conv2d
-from utils.img_processing import torch_richardson_lucy_fft
+from task.reconstruction import torch_richardson_lucy_fft
 
 
-class MBOLens(object):
-    def __init__(self, model_choice, use_litho_model_flag, num_iters, lr, use_scheduler, image_visualize_interval, cam_a_poisson, cam_b_sqrt, save_dir='', loss_type=None) -> None:
+class CameraPipeline(nn.Module):
+    """ Forward camera model for the image formation of meta/diffractive lens imaging with designed layout.
+    """
+    def __init__(self, metalens_optics_param, litho_param, use_litho_model_flag) -> None:
+        super(CameraPipeline, self).__init__()
         
-        self.model_choice = model_choice
         self.use_litho_model_flag = use_litho_model_flag
-        self.cam_a_poisson = cam_a_poisson
-        self.cam_b_sqrt = cam_b_sqrt
-        self.litho_model = model_selector(model_choice)
         
-        # the psf of lens shares the same path with the holography task.
+        # init the doe profile 
+        self.doe = DOE(
+                metalens_optics_param['num_partition'],
+                metalens_optics_param['num_level'], 
+                metalens_optics_param['input_shape'], 
+                litho_param['slicing_distance'],
+                doe_type=metalens_optics_param['doe_type']
+                )
+        
+        # the psf of lens in the imaging task shares the same propagation path with the holography task.
         self.lens_model = FreeSpaceFwd(
             metalens_optics_param['input_dx'], metalens_optics_param['input_shape'],
             metalens_optics_param['output_dx'], metalens_optics_param['output_shape'],
             metalens_optics_param['lambda'], metalens_optics_param['z'], 
             metalens_optics_param['pad_scale'], metalens_optics_param['Delta_n']
             )
+    
+    def get_psf(self, litho_model):
+        # get psf
+        mask = self.doe.get_doe_sample()
+        if self.use_litho_model_flag:
+            print_pred = litho_model(mask)
+        else:
+            print_pred = mask
         
-        self.doe = DOE(
-                       metalens_optics_param['num_partition'],
-                       metalens_optics_param['num_level'], 
-                       metalens_optics_param['input_shape'], 
-                       litho_param['slicing_distance'],
-                       doe_type=metalens_optics_param['doe_type']
-                       )
+        psf = torch.abs(self.lens_model(print_pred))**2
+        psf_sum = torch.sum(psf)
         
-        self.load_pretrianed_model(use_litho_model_flag)
+        if torch.isnan(psf).any():
+            raise
         
+        return psf, psf_sum, print_pred, mask
+    
+    def forward(self, batch_target, litho_model):
+        psf, psf_sum, print_pred, mask = self.get_psf(litho_model)
+        
+        # get sensor(camera) image
+        sensor_img = conv2d(batch_target, psf, intensity_output=True)
+        sensor_img = sensor_img + sensor_noise(sensor_img, 0.004, 0.02)
+
+        return sensor_img, psf, psf_sum, print_pred, mask 
+        
+
+
+class MBOLens(object):
+    """ Co-design through two diff simulators:
+        ---pretrained-litho ---- imaging lens (to be optimized) ---
+    """
+    def __init__(self, model_choice, use_litho_model_flag, num_iters, lr, use_scheduler, image_visualize_interval, cam_a_poisson, cam_b_sqrt, save_dir='', loss_type=None) -> None:
+        
+        self.model_choice = model_choice
+        
+        self.cam_a_poisson = cam_a_poisson
+        self.cam_b_sqrt = cam_b_sqrt
+        
+        # init the litho model
+        self.litho_model = model_selector(model_choice)
+        # load  pretrained params for the litho model
+        self.load_pretrained_litho_model(use_litho_model_flag)
+
+        # init the camera model
+        self.camera = CameraPipeline(metalens_optics_param, litho_param, use_litho_model_flag)
+        
+        # init the optimization process
+        self.initialize_optimization(lr, num_iters, loss_type, use_scheduler, image_visualize_interval, save_dir)
+
+    def load_pretrained_litho_model(self, use_litho_model_flag):
+        print('load_pretrained_model_for_optimize is {}'.format(
+            use_litho_model_flag))
+        
+        if use_litho_model_flag:
+            checkpoint = torch.load(
+                'model/ckpt/' + "learned_litho_model_"+ self.model_choice + ".pt")
+            self.litho_model.load_state_dict(checkpoint)
+            for param in self.litho_model.parameters():
+                param.requries_grad = False
+
+    def initialize_optimization(self, lr, num_iters, loss_type, use_scheduler, image_visualize_interval, save_dir):
         self.loss_type = loss_type
         self.num_iters = num_iters
         self.lr = lr
         self.mask_optimizer = torch.optim.AdamW(
-            [self.doe.logits], lr=self.lr)
+            [self.camera.doe.logits], lr=self.lr)
         
         self.loss_fn = nn.SmoothL1Loss(beta=0.1)  # 0.1
         self.image_visualize_interval = image_visualize_interval
         self.save_dir = save_dir
         self.metric_ssim = SSIMLoss(window_size=1)
         self.metric_psnr = PSNRLoss(max_val=1)
-
-        for param in self.litho_model.parameters():
-            param.requries_grad = False
 
         self.use_scheduler = use_scheduler
         if self.use_scheduler:
@@ -95,7 +150,7 @@ class MBOLens(object):
         if self.loss_type == 'cbr':
             # direct imaging
             loss = -torch.log(center_to_background_ratio(psf, centersize=10))
-        
+            
         elif self.loss_type == 'deconv_loss':
             # computational imaging, which uses RL deconvolution; here we embed the deconv process into the loss calculation
             deconv_result = torch_richardson_lucy_fft(cam_img, psf)                
@@ -109,51 +164,24 @@ class MBOLens(object):
             raise Exception
 
         return loss, deconv_result, metric_ssim, metric_psnr
-
-    def load_pretrianed_model(self, use_litho_model_flag):
-        
-        print('load_pretrained_model_for_optimize is {}'.format(
-            use_litho_model_flag))
-        
-        if use_litho_model_flag:
-            checkpoint = torch.load(
-                'model/ckpt/' + "learned_litho_model_"+ self.model_choice + ".pt")
-            self.litho_model.load_state_dict(checkpoint)
-            for param in self.litho_model.parameters():
-                param.requries_grad = False
-
-    def forward_imaging(self, batch_target, itr):
-        
-        # get psf
-        mask = self.doe.get_doe_sample()
-        if self.use_litho_model_flag:
-            print_pred = self.litho_model(mask)
-        else:
-            print_pred = mask
-            
-        psf = torch.abs(self.lens_model(print_pred))**2
-        psf_sum = torch.sum(psf)
-        
-        if torch.isnan(psf).any():
-            raise
-        
-        # get sensor(camera) image
-        sensor_img = conv2d(batch_target, psf, intensity_output=True)
-        sensor_img = sensor_img + sensor_noise(sensor_img, 0.004, 0.02)
-
-        # get loss
-        loss, deconv_img, metric_ssim, metric_psnr = self.calculate_loss(sensor_img, batch_target, psf)
-
-        return loss, metric_ssim, metric_psnr, mask, psf, psf_sum, deconv_img, sensor_img, print_pred
     
+    def save_optimized_psf_mask(self, psf_save):
+        # save optimized psf and mask_to_fab
+        mask_logits = self.camera.doe.logits_to_doe_profile()[0]
+        mask_to_save = (mask_logits.detach().cpu().numpy()+10).astype(np.uint8)
+        psf_to_save = psf_save.numpy()
+        cv2.imwrite(self.save_dir+'/mask'+'.bmp', mask_to_save)
+        cv2.imwrite(self.save_dir+'/psf'+'.bmp',
+                    (psf_to_save*255).astype(np.uint8))
+        return mask_logits
     
     def optim(self, batch_target):
         loss_list = []
         itr_list = []
         for i in range(self.num_iters):
             self.mask_optimizer.zero_grad()
-
-            loss, mssim, mpsnr, mask, psf, psf_intensity_sum, deconv_img, sensor_img, print_pred = self.forward_imaging(batch_target, i)
+            sensor_img, psf, psf_sum, print_pred, mask = self.camera(batch_target, self.litho_model)
+            loss, deconv_img, metric_ssim, metric_psnr = self.calculate_loss(sensor_img, batch_target, psf)
             
             loss.backward()
             self.mask_optimizer.step()
@@ -164,14 +192,7 @@ class MBOLens(object):
             itr_list.append(i)
 
             psf_save = self.visualize(i, mask, sensor_img, psf, deconv_img,
-                           itr_list, loss_list, mssim, mpsnr, psf_intensity_sum, loss)
+                           itr_list, loss_list, metric_ssim, metric_psnr, psf_sum, loss)
 
-        # save optimized psf and mask_to_fab
-        mask_logits = self.doe.logits_to_doe_profile()[0]
-        mask_to_save = (mask_logits.detach().cpu().numpy()+10).astype(np.uint8)
-        psf_to_save = psf_save.numpy()
-        cv2.imwrite(self.save_dir+'/mask'+'.bmp', mask_to_save)
-        cv2.imwrite(self.save_dir+'/psf'+'.bmp',
-                    (psf_to_save*255).astype(np.uint8))
-
+        mask_logits = self.save_optimized_psf_mask(psf_save)
         return mask_logits, print_pred

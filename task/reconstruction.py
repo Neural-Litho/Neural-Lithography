@@ -50,7 +50,6 @@ def torch_richardson_lucy_fft(image, psf, num_iter=50):
     https://stackoverflow.com/questions/9854312/how-does-richardson-lucy-algorithm-work-code-example
     """
 
-
     img_deconv = torch.full(image.shape, 0.5).to(device)
     eps = 1e-12
 
