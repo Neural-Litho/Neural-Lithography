@@ -4,7 +4,7 @@
 """ Inverse design the HOE. 
     Here we use pre-trained neural litho digital twin to find a better doe layout to send to fab.
 """
-from cuda_config import device
+from utils.cuda_config import device
 from trainer.mbo_holo import MBOHolo
 from param.param_inv_design_holography import optim_param, settings
 from utils.visualize_utils import show
