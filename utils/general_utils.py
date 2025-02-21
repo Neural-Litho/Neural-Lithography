@@ -1,5 +1,5 @@
 
-from cuda_config import *
+from utils.cuda_config import *
 import numpy as np
 import os
 import torch

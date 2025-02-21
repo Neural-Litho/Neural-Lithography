@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch
 from utils.general_utils import conv2d
 from net.simple_conv import NeuralPointwiseNet, NeuralAreawiseNet
-from cuda_config import device
+from utils.cuda_config import device
 from net.fno import FNO2d
 from param.param_fwd_litho import litho_param
 

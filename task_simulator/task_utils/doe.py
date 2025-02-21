@@ -3,7 +3,7 @@
 
 import torch.nn as nn
 import torch
-from cuda_config import device
+from utils.cuda_config import device
 import math
 from utils.gumbel_max_pytorch import gumbel_softmax
 

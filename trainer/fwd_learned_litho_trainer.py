@@ -1,6 +1,6 @@
 
 
-from cuda_config import device
+from utils.cuda_config import device
 import torch
 import torch.nn as nn 
 import math
@@ -8,7 +8,7 @@ from datetime import datetime
 from torch.optim.lr_scheduler import ExponentialLR
 from utils.general_utils import cond_mkdir
 from utils.visualize_utils import show, plot_loss
-from litho.learned_litho import model_selector
+from litho_simulator.learned_litho import model_selector
 
 
 class FwdLithoTrainer(object):
